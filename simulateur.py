@@ -35,7 +35,7 @@ class Simulateur:
         bruit = np.random.normal(0, np.sqrt(puissance_bruit), len(signal))
         return bruit
 
-    def simuler_microphones(self, signal, source, bruit_ambiant, niveau_bruit_micro_db, activer_reverb=True):
+    def simuler_microphones(self, signal, source, bruit_ambiant, activer_reverb=True):
         signaux_micros = []
         for micro in self.positions_micros:
             # distance de la source au micro
@@ -46,8 +46,7 @@ class Simulateur:
             signal_reverbere = self.appliquer_reverberation(
                 signal_propage, activer_reverb)
 
-            bruit_micro = self.generer_bruit(
-                len(signal_reverbere), niveau_bruit_micro_db)
+            bruit_micro = self.generer_bruit(signal_reverbere)
 
             signal_micro = signal_reverbere + bruit_micro + bruit_ambiant  # superposition
             signaux_micros.append(signal_micro)
@@ -62,9 +61,9 @@ source = [[2, 1]]  # Position de la source
 # On génère une RI synthétique pour ri_piece :
 # Paramètres de la RI synthétique
 
-duree_s = len(signal)*sr  # 2 secondes de durée
-frequence_echantillonnage = sr  # Taux d'échantillonnage standard pour l'audio
-nbr_reflexions = 50  # Nombre de réflexions simulées
+duree_s = len(signal)*sr
+frequence_echantillonnage = sr
+nbr_reflexions = 50  # Nombre de réflexions
 decroissance = 0.9  # Facteur de décroissance des réflexions
 
 taille_echantillon = len(signal)
@@ -80,6 +79,10 @@ for i in range(nbr_reflexions):
 
 simulateur = Simulateur(positions_micros, ri_piece)
 
-# bruit_ambiant = simulateur.generer_bruit(longueur_signal, niveau_bruit_ambiant_db)
-# signaux_micros = simulateur.simuler_microphones(
-#     signal, source, bruit_ambiant, niveau_bruit_micro_db)
+# # supposons qu'il n'y a pas de bruit ambiant (0dB)
+# niveau_bruit_ambiant_db = 0
+# bruit_ambiant = simulateur.generer_bruit(
+# )  # de même longueur que le signal
+
+signaux_micros = simulateur.simuler_microphones(
+    signal, source, bruit_ambiant=0)
