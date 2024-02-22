@@ -1,0 +1,29 @@
+import numpy as np
+import matplotlib.pyplot as plt
+from scipy.signal import fftconvolve
+# Création d'un signal d'impulsion simple
+signal = np.zeros(100)
+signal[10] = 1
+
+# Création d'une réponse impulsionnelle simple
+ri = np.exp(-np.linspace(0, 1, 100))
+
+# Utilisation de fftconvolve pour appliquer la réverbération
+signal_reverbere = fftconvolve(signal, ri, mode='full')
+
+# Affichage des signaux
+plt.figure(figsize=(15, 5))
+
+plt.subplot(1, 3, 1)
+plt.plot(signal)
+plt.title("Signal Original")
+
+plt.subplot(1, 3, 2)
+plt.plot(ri)
+plt.title("Réponse Impulsionnelle")
+
+plt.subplot(1, 3, 3)
+plt.plot(signal_reverbere)
+plt.title("Signal Réverbéré")
+
+plt.show()
