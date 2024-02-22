@@ -3,6 +3,7 @@ import scipy.signal
 import soundfile as sf
 import librosa
 import soundfile as sf
+import simpleaudio as sa
 
 
 class Simulateur:
@@ -88,3 +89,7 @@ simulateur = Simulateur(positions_micros, ri_piece)
 #     signal, source, bruit_ambiant=0)
 
 # sf.write("test_result.wav", signaux_micros[0], 44100)
+
+# wave_obj = sa.WaveObject.from_wave_file("test_result.wav")
+# play_obj = wave_obj.play()
+# play_obj.wait_done()  # pour s'écouter le résultat
