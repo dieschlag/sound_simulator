@@ -84,5 +84,7 @@ simulateur = Simulateur(positions_micros, ri_piece)
 # bruit_ambiant = simulateur.generer_bruit(
 # )  # de même longueur que le signal
 
-signaux_micros = simulateur.simuler_microphones(
-    signal, source, bruit_ambiant=0)
+# signaux_micros = simulateur.simuler_microphones(
+#     signal, source, bruit_ambiant=0)
+
+# sf.write("test_result.wav", signaux_micros[0], 44100)
