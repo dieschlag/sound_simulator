@@ -12,7 +12,7 @@ room_dim = [10, 7.5, 3.5]  # meters
 
 # import a mono wavfile as the source signal
 # the sampling frequency should match that of the room
-fs, audio = wavfile.read("examples/samples/guitar_16k.wav")
+fs, audio = wavfile.read("test3_short.wav")
 
 # We invert Sabine's formula to obtain the parameters for the ISM simulator
 e_absorption, max_order = pra.inverse_sabine(rt60_tgt, room_dim)
@@ -37,7 +37,7 @@ room.add_microphone_array(mic_locs)
 room.simulate()
 
 room.mic_array.to_wav(
-    f"examples/samples/guitar_16k_reverb_{args.method}.wav",
+    f"test3_short.wav",
     norm=True,
     bitdepth=np.int16,
 )
