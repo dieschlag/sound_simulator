@@ -64,8 +64,8 @@ source = [[2, 1]]  # Position de la source
 
 duree_s = len(signal)*sr
 frequence_echantillonnage = sr
-nbr_reflexions = 50  # Nombre de réflexions
-decroissance = 0.9  # Facteur de décroissance des réflexions
+nbr_reflexions = 5  # Nombre de réflexions
+decroissance = 0.8  # Facteur de décroissance des réflexions
 
 taille_echantillon = len(signal)
 ri_piece = np.zeros(taille_echantillon)
@@ -85,11 +85,11 @@ simulateur = Simulateur(positions_micros, ri_piece)
 # bruit_ambiant = simulateur.generer_bruit(
 # )  # de même longueur que le signal
 
-# signaux_micros = simulateur.simuler_microphones(
-#     signal, source, bruit_ambiant=0)
+signaux_micros = simulateur.simuler_microphones(
+    signal, source, bruit_ambiant=0)
 
-# sf.write("test_result.wav", signaux_micros[0], 44100)
+sf.write("test_result.wav", signaux_micros[0], 44100)
 
-# wave_obj = sa.WaveObject.from_wave_file("test_result.wav")
-# play_obj = wave_obj.play()
-# play_obj.wait_done()  # pour s'écouter le résultat
+wave_obj = sa.WaveObject.from_wave_file("test_result.wav")
+play_obj = wave_obj.play()
+play_obj.wait_done()  # pour s'écouter le résultat
