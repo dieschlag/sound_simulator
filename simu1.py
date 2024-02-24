@@ -5,6 +5,8 @@ import librosa
 import soundfile as sf
 import simpleaudio as sa
 
+from reverb import ri
+
 
 class Simulateur:
     def __init__(self, positions_micros, ri_piece, vitesse_son=343, fs=44100, snr_db=40):
@@ -68,14 +70,14 @@ nbr_reflexions = 5  # Nombre de réflexions
 decroissance = 0.8  # Facteur de décroissance des réflexions
 
 taille_echantillon = len(signal)
-ri_piece = np.zeros(taille_echantillon)
+ri_piece = ri
 
-for i in range(nbr_reflexions):
-    # Position de l'impulsion pour chaque réflexion
-    position = int((i / nbr_reflexions) * taille_echantillon)
-    # Amplitude décroissante pour chaque réflexion
-    amplitude = decroissance ** i
-    ri_piece[position] = amplitude
+# for i in range(nbr_reflexions):
+#     # Position de l'impulsion pour chaque réflexion
+#     position = int((i / nbr_reflexions) * taille_echantillon)
+#     # Amplitude décroissante pour chaque réflexion
+#     amplitude = decroissance ** i
+#     ri_piece[position] = amplitude
 
 
 simulateur = Simulateur(positions_micros, ri_piece)
