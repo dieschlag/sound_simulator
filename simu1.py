@@ -43,7 +43,7 @@ signaux = [audio_to_signal(chemin_du_dossier, fichier)
            for fichier in fichiers_audio]
 
 # Trouver la longueur maximale parmi tous les signaux
-longueur_max = int(np.min(len(signal) for signal in signaux))
+longueur_max = int(np.min([len(signal) for signal in signaux]))
 
 # Ajuster la longueur de tous les signaux à la longueur_max
 signaux_ajustes = ajuster_longueur_signaux(signaux, longueur_max)
