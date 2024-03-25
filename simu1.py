@@ -7,38 +7,56 @@ import simpleaudio as sa
 import sys
 import os
 from reverb import ri
+import wave
 
 
 def lister_fichiers(dossier):
+    """Liste tous les fichiers audio dans le dossier spécifié."""
     fichiers_liste = []
     for fichier in os.listdir(dossier):
-        print(fichier)
-        fichiers_liste.append(fichier)
+        if fichier.endswith((".wav", ".mp3")):  # Ajoutez d'autres formats au besoin
+            fichiers_liste.append(fichier)
     return fichiers_liste
 
 
-# Utilisation
-dossier = input("Entrez le chemin du dossier : ")
-
-all_audio = lister_fichiers(dossier)
-
-# On convertit toutes les entrées, sources et bruits ambiants (considérées comme des sources non voulues)
-
-
-def audio_to_signal(audio):
-    signal, sr = librosa.load(audio, sr=None)
+def audio_to_signal(dossier, fichier_audio):
+    """Convertit un fichier audio en un signal NumPy."""
+    chemin_complet = os.path.join(dossier, fichier_audio)
+    signal, sr = librosa.load(chemin_complet, sr=None)
     return signal
 
 
-all_signal = [audio_to_signal("sources/"+x) for x in all_audio]
+def ajuster_longueur_signaux(signaux, longueur_max):
+    """Ajuste la longueur de tous les signaux à la longueur_max."""
+    signaux_ajustes = []
+    for signal in signaux:
+        if len(signal) < longueur_max:
+            # Étendre le signal avec des zéros (padding)
+            signal_ajuste = np.pad(
+                signal, (0, longueur_max - len(signal)), mode='constant')
+        else:
+            # Tronquer le signal si nécessaire (pas requis dans cet exemple, mais inclus pour la complétude)
+            signal_ajuste = signal[:longueur_max]
+        signaux_ajustes.append(signal_ajuste)
+    return signaux_ajustes
 
 
-# Trouver la longueur maximale
-max_length = max(len(y) for y in all_signal)
+# Remplacez 'chemin_du_dossier' par le chemin de votre dossier contenant les signaux audio
 
-# Étendre les signaux à la longueur maximale
-for x in all_signal:
-    x = np.pad(x, (0, max_length - len(x)), 'constant')
+chemin_du_dossier = input(
+    "Entrez le chemin du dossier contenant les fichiers audio : ")
+
+fichiers_audio = lister_fichiers(chemin_du_dossier)
+signaux = [audio_to_signal(chemin_du_dossier, fichier)
+           for fichier in fichiers_audio]
+
+# Trouver la longueur maximale parmi tous les signaux
+longueur_max = max(len(signal) for signal in signaux)
+
+# Ajuster la longueur de tous les signaux à la longueur_max
+signaux_ajustes = ajuster_longueur_signaux(signaux, longueur_max)
+
+all_signal = signaux_ajustes
 
 
 class Simulateur:
