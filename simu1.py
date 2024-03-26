@@ -6,8 +6,8 @@ import soundfile as sf
 import simpleaudio as sa
 import sys
 import os
-from reverb import ri
 import wave
+import glob
 
 positions_micros = []
 position_sources = []
@@ -121,7 +121,7 @@ class Simulateur:
 # decroissance = 0.8  # Facteur de décroissance des réflexions
 
 # taille_echantillon = len(signal)
-ri_piece = ri
+
 
 # simulateur = Simulateur(positions_micros, position_sources, ri_piece)
 
@@ -146,9 +146,14 @@ def creer_dossier_et_enregistrer_signaux(nom_dossier, signaux, taux_echantillonn
     :param signaux: Liste des signaux audio à enregistrer (chaque signal est un tableau NumPy).
     :param taux_echantillonnage: Taux d'échantillonnage des signaux audio (en Hz).
     """
-    # Créer le dossier si celui-ci n'existe pas
+    # Créer le dossier si celui-ci n'existe pas et retire les fichiers dans le dossier si ce dernier existe déjà
     if not os.path.exists(nom_dossier):
         os.makedirs(nom_dossier)
+    else:
+        # Supprimer tous les fichiers existants dans le dossier
+        fichiers_a_supprimer = glob.glob(os.path.join(nom_dossier, "*.wav"))
+        for fichier in fichiers_a_supprimer:
+            os.remove(fichier)
 
     # Enregistrer chaque signal dans le dossier sous forme de fichier WAV
     for i, signal in enumerate(signaux):
