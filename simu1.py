@@ -9,6 +9,8 @@ import os
 from reverb import ri
 import wave
 
+positions_micros = []
+position_sources = []
 
 def lister_fichiers(dossier):
     """Liste tous les fichiers audio dans le dossier spécifié."""
@@ -50,6 +52,21 @@ signaux_ajustes = ajuster_longueur_signaux(signaux, longueur_max)
 
 all_signal = signaux_ajustes
 
+def source(x,y,z):
+    position_sources.append([x,y,z])
+    return None
+
+
+
+def micro(x,y,z):
+    positions_micros.append([x,y,z])
+    return None
+
+source(3, 3, 4)
+print(position_sources)
+
+micro(5,5,5)
+print(positions_micros)
 
 class Simulateur:
     def __init__(self, positions_micros, position_sources, ri_piece, vitesse_son=343, fs=44100, snr_db=40):
@@ -107,10 +124,10 @@ class Simulateur:
 
 
 signal, sr = librosa.load("sources/"+fichiers_audio[0], sr=None)
-positions_micros = ([1, 3], [2, 3], [3, 3])  # positions des micros
+# positions_micros = ([1, 3], [2, 3], [3, 3])  # positions des micros
 
 # Position de la positions_source
-position_sources = [[2.5, 1], [2, 1], [1.5, 1]]
+# position_sources = [[2.5, 1], [2, 1], [1.5, 1]]
 
 
 # On génère une RI synthétique pour ri_piece :
