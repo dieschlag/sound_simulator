@@ -37,23 +37,10 @@ def ajuster_longueur_signaux(signaux, longueur_max):
     return signaux_ajustes
 
 
-chemin_du_dossier = input(
-    "Entrez le chemin du dossier contenant les fichiers audio : ")
 
-fichiers_audio = lister_fichiers(chemin_du_dossier)
-signaux = [audio_to_signal(chemin_du_dossier, fichier)
-           for fichier in fichiers_audio]
 
-# Trouver la longueur maximale parmi tous les signaux
-longueur_max = int(np.min([len(signal) for signal in signaux]))
-
-# Ajuster la longueur de tous les signaux à la longueur_max
-signaux_ajustes = ajuster_longueur_signaux(signaux, longueur_max)
-
-all_signal = signaux_ajustes
-
-def source(x,y,z):
-    position_sources.append([x,y,z])
+def source(x,y,z,audio):
+    position_sources.append([[x,y,z],audio])
     return None
 
 
@@ -62,16 +49,11 @@ def micro(x,y,z):
     positions_micros.append([x,y,z])
     return None
 
-source(3, 3, 4)
-print(position_sources)
-
-micro(5,5,5)
-print(positions_micros)
-
 class Simulateur:
-    def __init__(self, positions_micros, position_sources, ri_piece, vitesse_son=343, fs=44100, snr_db=40):
+    def __init__(self, positions_micros, position_sources, all_signal, ri_piece, vitesse_son=343, fs=44100, snr_db=40):
         self.positions_micros = positions_micros
         self.position_sources = position_sources
+        self.all_signal = all_signal
         self.ri_piece = ri_piece
         self.vitesse_son = vitesse_son
         self.fs = fs
@@ -108,9 +90,9 @@ class Simulateur:
             for i in range(len(positions_source)):
                 # distance de la positions_source au micro
                 distance = np.linalg.norm(
-                    np.array(positions_source[i]) - np.array(micro))
+                    np.array(positions_source[i][0]) - np.array(micro))
                 signal_propage = self.simuler_propagation_attenuation(
-                    all_signal[i], distance)
+                    self.all_signal[i], distance)
 
                 signal_reverbere = self.appliquer_reverberation(
                     signal_propage, activer_reverb)
@@ -123,7 +105,7 @@ class Simulateur:
         return signaux_micros
 
 
-signal, sr = librosa.load("sources/"+fichiers_audio[0], sr=None)
+# signal, sr = librosa.load("sources/"+fichiers_audio[0], sr=None)
 # positions_micros = ([1, 3], [2, 3], [3, 3])  # positions des micros
 
 # Position de la positions_source
@@ -133,21 +115,21 @@ signal, sr = librosa.load("sources/"+fichiers_audio[0], sr=None)
 # On génère une RI synthétique pour ri_piece :
 # Paramètres de la RI synthétique
 
-duree_s = len(signal)*sr
-frequence_echantillonnage = sr
-nbr_reflexions = 5  # Nombre de réflexions
-decroissance = 0.8  # Facteur de décroissance des réflexions
+# duree_s = len(signal)*sr
+# frequence_echantillonnage = sr
+# nbr_reflexions = 5  # Nombre de réflexions
+# decroissance = 0.8  # Facteur de décroissance des réflexions
 
-taille_echantillon = len(signal)
+# taille_echantillon = len(signal)
 ri_piece = ri
 
-simulateur = Simulateur(positions_micros, position_sources, ri_piece)
+# simulateur = Simulateur(positions_micros, position_sources, ri_piece)
 
 # supposons qu'il n'y a pas de bruit ambiant (0dB)
 # signal, sr = librosa.load("test3_short.wav", sr=None)
 # positions_source = [[2, 1]]  # Position de la positions_source du bruit ambiant
 
-signaux_micros = simulateur.simuler_microphones(position_sources)
+# signaux_micros = simulateur.simuler_microphones(position_sources)
 
 # sf.write("test_result_mic4.wav", signaux_micros[2], 44100)
 
@@ -178,9 +160,9 @@ def creer_dossier_et_enregistrer_signaux(nom_dossier, signaux, taux_echantillonn
 # `taux_echantillonnage` doit correspondre au taux d'échantillonnage des signaux contenus dans `liste_des_signaux`
 
 
-liste_des_signaux = signaux_micros  # Votre liste de signaux ici
-# Taux d'échantillonnage des signaux (à ajuster selon vos données)
-taux_echantillonnage = 44100
+# liste_des_signaux = signaux_micros  # Votre liste de signaux ici
+# # Taux d'échantillonnage des signaux (à ajuster selon vos données)
+# taux_echantillonnage = 44100
 
-creer_dossier_et_enregistrer_signaux(
-    "Signaux_micros", liste_des_signaux, taux_echantillonnage)
+# creer_dossier_et_enregistrer_signaux(
+#     "Signaux_micros", liste_des_signaux, taux_echantillonnage)
