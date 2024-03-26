@@ -11,7 +11,7 @@ A modifier
 ### Rajouter sources et micros :
 source(2.5, 5, 1, "Audio6")
 micro(2,1,1.5)
-micro(2.2.5,1.2.5,1.5)
+micro(2.2,1,1.5)
 micro(2.4,1,1.5)
 micro(2.6,1,1.5)
 micro(2.8,1,1.5)
