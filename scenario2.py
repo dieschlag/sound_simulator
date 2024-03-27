@@ -1,8 +1,8 @@
 
 from simulateur import *
 
-source(2.5, 4.5, 1, "sources/Audio1.wav")
-source(2.5, 5.5, 1, "sources/Audio2.wav")
+source(2.5, 4.5, 1, "sources/Audio5.wav")
+source(2.5, 5.5, 1, "sources/Audio6.wav")
 
 micro(2, 1, 1.5, 40)
 micro(2.25, 1, 1.5, 40)
