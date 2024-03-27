@@ -33,6 +33,8 @@ def audio_to_signal(chemin):
     """Convertit un fichier audio en un signal NumPy."""
     # chemin_complet = os.path.join(dossier, fichier_audio)
     signal, sr = librosa.load(chemin, sr=None)
+    print("signal")
+    print(signal)
     return signal
 
 
@@ -40,8 +42,11 @@ def ajuster_longueur_signaux(signaux, longueur_max):
     """Ajuste la longueur de tous les signaux à la longueur_max."""
     signaux_ajustes = []
     for signal in signaux:
-        signal_ajuste = signal[:longueur_max]
-        signaux_ajustes.append(signal_ajuste)
+        if len(signal) < longueur_max:
+            signal_ajuste = np.pad(signal, (0,longueur_max-len(signal)))
+            signaux_ajustes.append(signal_ajuste)
+        else :
+            signaux_ajustes.append(signal)
     return signaux_ajustes
 
 
@@ -137,11 +142,17 @@ class Simulateur:
         signal_propage = []
         
         for (i, micro) in enumerate(self.positions_micros):
-            signal_micro = np.zeros(len(self.all_signal[0]))
+            signal_micro = np.zeros(len(max([signal for signal in self.all_signal], key=len)))
+            # print("toutes les listes")
+            # print([signal for signal in self.all_signal])
+            # print("taille maximale")
+            # print(len(max([signal for signal in self.all_signal], key=len)))
             for i in range(len(positions_source)):
                 # distance de la positions_source au micro
                 distance = np.linalg.norm(
                     np.array(positions_source[i][0]) - np.array(micro))
+                print("position source")
+                print(positions_source[i][0])
                 print(distance)
                 print(self.all_signal[i])
                 signal_propage = self.simuler_propagation_attenuation(
@@ -154,7 +165,7 @@ class Simulateur:
                 print(signal_reverbere)
                 bruit_micro = self.generer_bruit(signal_reverbere, self.bruits[i])
                 print("bruit_micro")
-                signal_micro += signal_reverbere #+ bruit_micro  # superposition
+                signal_micro += signal_reverbere + bruit_micro  # superposition
                 print(signal_micro)
             signaux_micros.append(signal_micro)
         return signaux_micros
@@ -177,13 +188,13 @@ def simuler():
     signaux = [audio_to_signal(position_sources[i][1])
             for i in range(len(position_sources))]
 
-    # # Trouver la longueur maximale parmi tous les signaux
-    # longueur_max = int(np.min([len(signal) for signal in signaux]))
+    # Trouver la longueur maximale parmi tous les signaux
+    longueur_max = len(max([signal for signal in signaux], key=len))
 
     # # Ajuster la longueur de tous les signaux à la longueur_max
-    # signaux_ajustes = ajuster_longueur_signaux(signaux, longueur_max)
+    signaux_ajustes = ajuster_longueur_signaux(signaux, longueur_max)
 
-    all_signal = signaux
+    all_signal = signaux_ajustes
     sources= [item[0] for item in position_sources]
     print(all_signal)
     print(sources)
