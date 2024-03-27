@@ -9,7 +9,7 @@ A modifier
 
 
 ### Rajouter sources et micros :
-source(8, 3, 1, "Audio6")
+source(1, 5, 1, "Audio6")
 micro(1,1,1.5)
 micro(1.2,1,1.5)
 # micro(2.4,1,1.5)

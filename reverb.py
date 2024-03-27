@@ -7,7 +7,7 @@ import simpleaudio as sa
 
 
 # Dimensions de la pièce (largeur, longueur, hauteur) en mètres
-
+activer_reverb = False
 dimensions_piece = []
 
 def piece(largeur=5.0, longueur=10.0, hauteur=2):
@@ -33,7 +33,9 @@ def absorption_coeff(east=0.2, west=0.2, north=0.2, south=0.2, ceiling=0.6, floo
         'floor': floor
     })
     print(absorption)
-    return absorption
+    global activer_reverb
+    activer_reverb = True
+    return None
     
      
 

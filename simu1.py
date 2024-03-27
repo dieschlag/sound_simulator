@@ -92,12 +92,13 @@ def creer_dossier_et_enregistrer_signaux(nom_dossier, signaux, taux_echantillonn
             print(f"Signaux {i+1} et {i+2} supperposés et enregistrés sous : {nom_fichier}")
 
 class Simulateur:
-    def __init__(self, positions_micros, position_sources, all_signal, ri_piece, vitesse_son, fs=44100, snr_db=40):
+    def __init__(self, positions_micros, position_sources, all_signal, ri_piece, vitesse_son, activer_reverb, fs=44100, snr_db=40):
         self.positions_micros = positions_micros
         self.position_sources = position_sources
         self.all_signal = all_signal
         self.ri_piece = ri_piece
         self.vitesse_son = vitesse_son
+        self.activer_reverb = activer_reverb
         self.fs = fs
         self.snr_db = snr_db
 
@@ -114,10 +115,11 @@ class Simulateur:
         return signal_propage * attenuation
     
     def appliquer_reverberation(self, signal, activer_reverb=True):
-        if activer_reverb:
+        if self.activer_reverb:
             # convolution avec Fourier rapide
             return scipy.signal.fftconvolve(signal, self.ri_piece, mode='full')[:len(signal)]
         else:
+            print("nope")
             return signal
 
     def generer_bruit(self, signal):
@@ -133,7 +135,7 @@ class Simulateur:
         signal_propage = []
         
         for micro in self.positions_micros:
-            signal_micro = 0
+            signal_micro = np.zeros(len(self.all_signal[0]))
             for i in range(len(positions_source)):
                 # distance de la positions_source au micro
                 distance = np.linalg.norm(
@@ -148,9 +150,9 @@ class Simulateur:
                     signal_propage, activer_reverb)
                 print("signal_reverbe")
                 print(signal_reverbere)
-                bruit_micro = self.generer_bruit(signal_reverbere)
-                print("bruit_micro")
-                signal_micro += signal_reverbere + bruit_micro  # superposition
+                # bruit_micro = self.generer_bruit(signal_reverbere)
+                # print("bruit_micro")
+                signal_micro += signal_reverbere #+ bruit_micro  # superposition
                 print(signal_micro)
             signaux_micros.append(signal_micro)
         return signaux_micros
@@ -184,16 +186,17 @@ def simu():
     print(all_signal)
     print(sources)
     print(absorption)
+    ri_piece = 0
+    if activer_reverb:
+        ri_piece = ri(absorption, dimensions_piece, sources, positions_micros)
 
-    ri_piece = ri(absorption, dimensions_piece, sources, positions_micros)
-
-    simulateur = Simulateur(positions_micros, position_sources, all_signal, ri_piece, vitesse_son)
+    simulateur = Simulateur(positions_micros, position_sources, all_signal, ri_piece, vitesse_son, activer_reverb)
     signaux_micros = simulateur.simuler_microphones(position_sources)
     print("signaux micros")
     print(signaux_micros)
-    for signal in signaux_micros :
-        print("signal micro:")
-        print(signal)
+    for i in range(len(signaux_micros)-1) :
+        print(signaux_micros[i]-signaux_micros[i+1])
+        print(signaux_micros[i])
     liste_des_signaux = signaux_micros
     taux_echantillonnage = 44100
     creer_dossier_et_enregistrer_signaux(
