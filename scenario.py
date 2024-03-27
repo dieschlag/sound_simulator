@@ -21,7 +21,8 @@ micro(3,1,1.5)
 
 piece()
 absorption_coeff()
-vitesse_son = 343
+vitesse_son(343)
+# vitesse_son = 343
 fs = 44100
 snr_db = 40
 

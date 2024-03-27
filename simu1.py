@@ -12,6 +12,12 @@ from reverb import *
 
 positions_micros = []
 position_sources = []
+vitesse_son = 343
+
+def vitesse_son(vitesse):
+    global vitesse_son
+    vitesse_son = vitesse
+    return None
 
 def lister_fichiers(dossier):
     """Liste tous les fichiers audio dans le dossier spécifié."""
@@ -51,7 +57,7 @@ def micro(x,y,z):
     return None
 
 class Simulateur:
-    def __init__(self, positions_micros, position_sources, all_signal, ri_piece, vitesse_son=343, fs=44100, snr_db=40):
+    def __init__(self, positions_micros, position_sources, all_signal, ri_piece, vitesse_son, fs=44100, snr_db=40):
         self.positions_micros = positions_micros
         self.position_sources = position_sources
         self.all_signal = all_signal
@@ -161,11 +167,24 @@ def creer_dossier_et_enregistrer_signaux(nom_dossier, signaux, taux_echantillonn
         nom_fichier = os.path.join(nom_dossier, f"signal_micro_{i+1}.wav")
         sf.write(nom_fichier, signal, taux_echantillonnage)
         print(f"Signal {i+1} enregistré sous : {nom_fichier}")
+    
+    for i, signal in enumerate(signaux):
+        
 
-def simu ():
+        # Si ce n'est pas le dernier signal
+        if i < len(signaux) - 1:
+            nom_fichier = os.path.join(nom_dossier, f"signal_successif_{i+1}_{i+2}.wav")
+            # Superposer le signal actuel avec le suivant
+            signal = signal + signaux[i + 1]
+            # Enregistrer le signal dans un fichier WAV
+            sf.write(nom_fichier, signal, taux_echantillonnage)
+            print(f"Signaux {i+1} et {i+2} supperposés et enregistrés sous : {nom_fichier}")
+
+def simu():
 
     print(dimensions_piece)
     print(absorption)
+    print(vitesse_son)  
 
     # dimensions_piece = piece()
     # absorption = absorption_coeff()
@@ -191,7 +210,7 @@ def simu ():
 
     ri_piece = ri(absorption, dimensions_piece, sources, positions_micros)
 
-    simulateur = Simulateur(positions_micros, position_sources, all_signal, ri_piece)
+    simulateur = Simulateur(positions_micros, position_sources, all_signal, ri_piece, vitesse_son)
     signaux_micros = simulateur.simuler_microphones(position_sources)
     liste_des_signaux = signaux_micros
     taux_echantillonnage = 44100
