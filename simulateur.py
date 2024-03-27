@@ -29,10 +29,10 @@ def lister_fichiers(dossier):
     return fichiers_liste
 
 
-def audio_to_signal(dossier, fichier_audio):
+def audio_to_signal(chemin):
     """Convertit un fichier audio en un signal NumPy."""
-    chemin_complet = os.path.join(dossier, fichier_audio)
-    signal, sr = librosa.load(chemin_complet, sr=None)
+    # chemin_complet = os.path.join(dossier, fichier_audio)
+    signal, sr = librosa.load(chemin, sr=None)
     return signal
 
 
@@ -170,20 +170,20 @@ def simuler():
     # dimensions_piece = piece()
     # absorption = absorption_coeff()
 
-    chemin_du_dossier = input(
-    "Entrez le chemin du dossier contenant les fichiers audio : ")
+    # chemin_du_dossier = input(
+    # "Entrez le chemin du dossier contenant les fichiers audio : ")
 
-    fichiers_audio = lister_fichiers(chemin_du_dossier)
-    signaux = [audio_to_signal(chemin_du_dossier, position_sources[i][1] + ".wav")
+    # fichiers_audio = lister_fichiers(chemin_du_dossier)
+    signaux = [audio_to_signal(position_sources[i][1])
             for i in range(len(position_sources))]
 
-    # Trouver la longueur maximale parmi tous les signaux
-    longueur_max = int(np.min([len(signal) for signal in signaux]))
+    # # Trouver la longueur maximale parmi tous les signaux
+    # longueur_max = int(np.min([len(signal) for signal in signaux]))
 
-    # Ajuster la longueur de tous les signaux à la longueur_max
-    signaux_ajustes = ajuster_longueur_signaux(signaux, longueur_max)
+    # # Ajuster la longueur de tous les signaux à la longueur_max
+    # signaux_ajustes = ajuster_longueur_signaux(signaux, longueur_max)
 
-    all_signal = signaux_ajustes
+    all_signal = signaux
     sources= [item[0] for item in position_sources]
     print(all_signal)
     print(sources)
