@@ -162,10 +162,13 @@ def creer_dossier_et_enregistrer_signaux(nom_dossier, signaux, taux_echantillonn
         sf.write(nom_fichier, signal, taux_echantillonnage)
         print(f"Signal {i+1} enregistré sous : {nom_fichier}")
 
-def simu (dimensions_piece, absorption):
+def simu ():
 
-    dimensions_piece = piece()
-    absorption = absorption_coeff()
+    print(dimensions_piece)
+    print(absorption)
+
+    # dimensions_piece = piece()
+    # absorption = absorption_coeff()
 
     chemin_du_dossier = input(
     "Entrez le chemin du dossier contenant les fichiers audio : ")

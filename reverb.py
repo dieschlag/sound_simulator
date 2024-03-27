@@ -8,24 +8,30 @@ import simpleaudio as sa
 
 # Dimensions de la pièce (largeur, longueur, hauteur) en mètres
 
+dimensions_piece = []
+
 def piece(largeur=5.0, longueur=10.0, hauteur=2):
-    return [largeur, longueur, hauteur]
+    param =  [largeur, longueur, hauteur]
+    for item in param:
+        dimensions_piece.append(item)
+    return None
     
 
 
 # Coefficients d'absorption pour chaque surface de la pièce
 
-
+absorption = {}
 
 def absorption_coeff(east=0.2, west=0.2, north=0.2, south=0.2, ceiling=0.6, floor=0.3):
-    absorption = {
+    global absorption
+    absorption.update({
         'east': east,
         'west': west,
         'north': north,
         'south': south,
         'ceiling': ceiling,
         'floor': floor
-    }
+    })
     print(absorption)
     return absorption
     
