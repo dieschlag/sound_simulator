@@ -20,15 +20,6 @@ def vitesse_son(vitesse):
     vitesse_son = vitesse
     return None
 
-# def lister_fichiers(dossier):
-#     """Liste tous les fichiers audio dans le dossier spécifié."""
-#     fichiers_liste = []
-#     for fichier in os.listdir(dossier):
-#         if fichier.endswith((".wav", ".mp3")):  # Ajoutez d'autres formats au besoin
-#             fichiers_liste.append(fichier)
-#     return fichiers_liste
-
-
 def audio_to_signal(chemin):
     """Convertit un fichier audio en un signal NumPy."""
     # chemin_complet = os.path.join(dossier, fichier_audio)
