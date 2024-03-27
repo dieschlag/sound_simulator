@@ -29,8 +29,9 @@ def audio_to_signal(chemin):
     return signal
 
 
-def ajuster_longueur_signaux(signaux, longueur_max):
+def ajuster_longueur_signaux(signaux):
     """Ajuste la longueur de tous les signaux à la longueur_max."""
+    longueur_max = len(max([signal for signal in signaux], key=len))
     signaux_ajustes = []
     for signal in signaux:
         if len(signal) < longueur_max:
@@ -180,10 +181,10 @@ def simuler():
             for i in range(len(position_sources))]
 
     # Trouver la longueur maximale parmi tous les signaux
-    longueur_max = len(max([signal for signal in signaux], key=len))
+    
 
     # # Ajuster la longueur de tous les signaux à la longueur_max
-    signaux_ajustes = ajuster_longueur_signaux(signaux, longueur_max)
+    signaux_ajustes = ajuster_longueur_signaux(signaux)
 
     all_signal = signaux_ajustes
     sources= [item[0] for item in position_sources]
