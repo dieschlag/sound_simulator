@@ -56,95 +56,6 @@ def micro(x,y,z):
     positions_micros.append([x,y,z])
     return None
 
-class Simulateur:
-    def __init__(self, positions_micros, position_sources, all_signal, ri_piece, vitesse_son, fs=44100, snr_db=40):
-        self.positions_micros = positions_micros
-        self.position_sources = position_sources
-        self.all_signal = all_signal
-        self.ri_piece = ri_piece
-        self.vitesse_son = vitesse_son
-        self.fs = fs
-        self.snr_db = snr_db
-
-    def simuler_propagation_attenuation(self, signal, distance):
-        temps_propagation = distance / self.vitesse_son
-        echantillons_retard = int(temps_propagation * self.fs)
-        attenuation = 1 / (distance**2)
-        signal_propage = np.pad(signal, (echantillons_retard, 0), 'constant')[
-            :-echantillons_retard]
-        return signal_propage * attenuation
-
-    def appliquer_reverberation(self, signal, activer_reverb=True):
-        if activer_reverb:
-            # convolution avec Fourier rapide
-            return scipy.signal.fftconvolve(signal, self.ri_piece, mode='full')[:len(signal)]
-        else:
-            return signal
-
-    def generer_bruit(self, signal):
-        puissance_signal = np.mean(signal**2)
-        ratio_snr = 10**(self.snr_db / 10)
-        puissance_bruit = puissance_signal / ratio_snr
-        bruit = np.random.normal(0, np.sqrt(puissance_bruit), len(signal))
-        return bruit
-
-    def simuler_microphones(self, positions_source, activer_reverb=True):
-        signaux_micros = []
-        signal_reverbere = []
-        signal_propage = []
-        signal_micro = 0
-        for micro in self.positions_micros:
-            for i in range(len(positions_source)):
-                # distance de la positions_source au micro
-                distance = np.linalg.norm(
-                    np.array(positions_source[i][0]) - np.array(micro))
-                signal_propage = self.simuler_propagation_attenuation(
-                    self.all_signal[i], distance)
-
-                signal_reverbere = self.appliquer_reverberation(
-                    signal_propage, activer_reverb)
-
-                bruit_micro = self.generer_bruit(signal_reverbere)
-
-                signal_micro += signal_reverbere + bruit_micro  # superposition
-
-            signaux_micros.append(signal_micro)
-        return signaux_micros
-
-
-# signal, sr = librosa.load("sources/"+fichiers_audio[0], sr=None)
-# positions_micros = ([1, 3], [2, 3], [3, 3])  # positions des micros
-
-# Position de la positions_source
-# position_sources = [[2.5, 1], [2, 1], [1.5, 1]]
-
-
-# On génère une RI synthétique pour ri_piece :
-# Paramètres de la RI synthétique
-
-# duree_s = len(signal)*sr
-# frequence_echantillonnage = sr
-# nbr_reflexions = 5  # Nombre de réflexions
-# decroissance = 0.8  # Facteur de décroissance des réflexions
-
-# taille_echantillon = len(signal)
-
-
-# simulateur = Simulateur(positions_micros, position_sources, ri_piece)
-
-# supposons qu'il n'y a pas de bruit ambiant (0dB)
-# signal, sr = librosa.load("test3_short.wav", sr=None)
-# positions_source = [[2, 1]]  # Position de la positions_source du bruit ambiant
-
-# signaux_micros = simulateur.simuler_microphones(position_sources)
-
-# sf.write("test_result_mic4.wav", signaux_micros[2], 44100)
-
-# wave_obj = sa.WaveObject.from_wave_file("test_result_mic4.wav")
-# play_obj = wave_obj.play()
-# play_obj.wait_done()  # pour s'écouter le résultat
-
-
 def creer_dossier_et_enregistrer_signaux(nom_dossier, signaux, taux_echantillonnage=44100):
     """
     Crée un dossier et enregistre une liste de signaux audio dans ce dossier.
@@ -180,6 +91,72 @@ def creer_dossier_et_enregistrer_signaux(nom_dossier, signaux, taux_echantillonn
             sf.write(nom_fichier, signal, taux_echantillonnage)
             print(f"Signaux {i+1} et {i+2} supperposés et enregistrés sous : {nom_fichier}")
 
+class Simulateur:
+    def __init__(self, positions_micros, position_sources, all_signal, ri_piece, vitesse_son, fs=44100, snr_db=40):
+        self.positions_micros = positions_micros
+        self.position_sources = position_sources
+        self.all_signal = all_signal
+        self.ri_piece = ri_piece
+        self.vitesse_son = vitesse_son
+        self.fs = fs
+        self.snr_db = snr_db
+
+    def simuler_propagation_attenuation(self, signal, distance):
+        temps_propagation = distance / self.vitesse_son
+        print("distance :")
+        print(distance)
+        echantillons_retard = int(temps_propagation * self.fs)
+        print("echantillon retard:")
+        print(echantillons_retard)
+        attenuation = 1 / (distance**2)
+        signal_propage = np.pad(signal, (echantillons_retard, 0), 'constant')[
+            :-echantillons_retard]
+        return signal_propage * attenuation
+    
+    def appliquer_reverberation(self, signal, activer_reverb=True):
+        if activer_reverb:
+            # convolution avec Fourier rapide
+            return scipy.signal.fftconvolve(signal, self.ri_piece, mode='full')[:len(signal)]
+        else:
+            return signal
+
+    def generer_bruit(self, signal):
+        puissance_signal = np.mean(signal**2)
+        ratio_snr = 10**(self.snr_db / 10)
+        puissance_bruit = puissance_signal / ratio_snr
+        bruit = np.random.normal(0, np.sqrt(puissance_bruit), len(signal))
+        return bruit
+
+    def simuler_microphones(self, positions_source, activer_reverb=True):
+        signaux_micros = []
+        signal_reverbere = []
+        signal_propage = []
+        
+        for micro in self.positions_micros:
+            signal_micro = 0
+            for i in range(len(positions_source)):
+                # distance de la positions_source au micro
+                distance = np.linalg.norm(
+                    np.array(positions_source[i][0]) - np.array(micro))
+                print(distance)
+                print(self.all_signal[i])
+                signal_propage = self.simuler_propagation_attenuation(
+                    self.all_signal[i], distance)
+                print("signal_propage")
+                print(signal_propage)
+                signal_reverbere = self.appliquer_reverberation(
+                    signal_propage, activer_reverb)
+                print("signal_reverbe")
+                print(signal_reverbere)
+                bruit_micro = self.generer_bruit(signal_reverbere)
+                print("bruit_micro")
+                signal_micro += signal_reverbere + bruit_micro  # superposition
+                print(signal_micro)
+            signaux_micros.append(signal_micro)
+        return signaux_micros
+
+
+
 def simu():
 
     print(dimensions_piece)
@@ -212,6 +189,11 @@ def simu():
 
     simulateur = Simulateur(positions_micros, position_sources, all_signal, ri_piece, vitesse_son)
     signaux_micros = simulateur.simuler_microphones(position_sources)
+    print("signaux micros")
+    print(signaux_micros)
+    for signal in signaux_micros :
+        print("signal micro:")
+        print(signal)
     liste_des_signaux = signaux_micros
     taux_echantillonnage = 44100
     creer_dossier_et_enregistrer_signaux(
