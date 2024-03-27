@@ -22,7 +22,6 @@ def vitesse_son(vitesse):
 
 def audio_to_signal(chemin):
     """Convertit un fichier audio en un signal NumPy."""
-    # chemin_complet = os.path.join(dossier, fichier_audio)
     signal, sr = librosa.load(chemin, sr=None)
     print("signal")
     print(signal)
