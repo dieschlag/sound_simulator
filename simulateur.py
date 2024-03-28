@@ -76,18 +76,18 @@ def creer_dossier_et_enregistrer_signaux(nom_dossier, signaux, taux_echantillonn
         nom_fichier = os.path.join(nom_dossier, f"signal_micro_{i+1}.wav")
         sf.write(nom_fichier, signal, taux_echantillonnage)
         print(f"Signal {i+1} enregistré sous : {nom_fichier}")
-    
-    for i, signal in enumerate(signaux):
-        
 
-        # Si ce n'est pas le dernier signal
-        if i < len(signaux) - 1:
-            nom_fichier = os.path.join(nom_dossier, f"signal_successif_{i+1}_{i+2}.wav")
-            # Superposer le signal actuel avec le suivant
-            signal = signal + signaux[i + 1]
-            # Enregistrer le signal dans un fichier WAV
-            sf.write(nom_fichier, signal, taux_echantillonnage)
-            print(f"Signaux {i+1} et {i+2} supperposés et enregistrés sous : {nom_fichier}")
+    for i in range(len(signaux) - 1):
+        nom_fichier = os.path.join(nom_dossier, f"signal_successif_{i+1}_{i+2}.wav")
+        # Créer un tableau vide pour le signal combiné
+        signal_combine = np.zeros((max(len(signaux[i]), len(signaux[i+1])), 2))
+        # Assigner le son du microphone i à l'oreille gauche
+        signal_combine[:len(signaux[i]), 0] = signaux[i]
+        # Assigner le son du microphone i+1 à l'oreille droite
+        signal_combine[:len(signaux[i+1]), 1] = signaux[i+1]
+        # Enregistrer le signal combiné dans un fichier WAV
+        sf.write(nom_fichier, signal_combine, taux_echantillonnage)
+        print(f"Signaux {i+1} et {i+2} superposés et enregistrés sous : {nom_fichier}")
 
 class Simulateur:
     def __init__(self, positions_micros, position_sources, all_signal, ri_piece, vitesse_son, activer_reverb, bruits, fs=44100):
@@ -112,7 +112,7 @@ class Simulateur:
             :-echantillons_retard]
         return signal_propage * attenuation
     
-    def appliquer_reverberation(self, signal, activer_reverb=True):
+    def appliquer_reverberation(self, signal, activer_reverb):
         if self.activer_reverb:
             # convolution avec Fourier rapide
             return scipy.signal.fftconvolve(signal, self.ri_piece, mode='full')[:len(signal)]
@@ -127,7 +127,7 @@ class Simulateur:
         bruit = np.random.normal(0, np.sqrt(puissance_bruit), len(signal))
         return bruit
 
-    def simuler_microphones(self, positions_source, activer_reverb=True):
+    def simuler_microphones(self, positions_source, activer_reverbs):
         signaux_micros = []
         signal_reverbere = []
         signal_propage = []
@@ -195,7 +195,7 @@ def simuler():
         ri_piece = ri(absorption, dimensions_piece, sources, positions_micros)
 
     simulateur = Simulateur(positions_micros, position_sources, all_signal, ri_piece, vitesse_son, activer_reverb, bruits)
-    signaux_micros = simulateur.simuler_microphones(position_sources)
+    signaux_micros = simulateur.simuler_microphones(position_sources, activer_reverb)
     print("signaux micros")
     print(signaux_micros)
     for i in range(len(signaux_micros)-1) :
