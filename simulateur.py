@@ -139,7 +139,7 @@ def create_folder_and_save_signals(folder_name, signals, sampling_rate=44100):
 class Simulator:
     """ Simualtor class storing all elements linked to an ongoing simulation"""
     
-    def __init__(self, positions_micros, position_sources, all_signal, ri_piece, vitesse_son, activer_reverb, bruits, fs=44100):
+    def __init__(self, positions_micros, position_sources, all_signal, ri_room, vitesse_son, reverb, bruits, fs=44100):
         """ Initializes the Simulator class
 
         Args:
@@ -154,26 +154,22 @@ class Simulator:
         self.all_signal = all_signal
         self.ri_room = ri_room
         self.sound_speed = sound_speed
-        self.activer_reverb = activer_reverb
-        self.bruits = bruits
+        self.reverb = reverb
+        self.snrs = snrs
         self.fs = fs
 
     def simuler_propagation_attenuation(self, signal, distance):
-        temps_propagation = distance / self.vitesse_son
-        print("distance :")
-        print(distance)
-        echantillons_retard = int(temps_propagation * self.fs)
-        print("echantillon retard:")
-        print(echantillons_retard)
+        propagation_time = distance / self.vitesse_son
+        echantillons_retard = int(propagation_time * self.fs)
         attenuation = 1 / (distance**2)
-        signal_propage = np.pad(signal, (echantillons_retard, 0), 'constant')[
+        propagated_signal = np.pad(signal, (echantillons_retard, 0), 'constant')[
             :-echantillons_retard]
-        return signal_propage * attenuation
+        return propagated_signal * attenuation
     
-    def appliquer_reverberation(self, signal, activer_reverb):
-        if self.activer_reverb:
+    def appliquer_reverberation(self, signal, reverb):
+        if self.reverb:
             # convolution avec Fourier rapide
-            return scipy.signal.fftconvolve(signal, self.ri_piece, mode='full')[:len(signal)]
+            return scipy.signal.fftconvolve(signal, self.ri_room, mode='full')[:len(signal)]
         else:
             print("nope")
             return signal
@@ -188,7 +184,7 @@ class Simulator:
     def simuler_microphones(self, positions_source, activer_reverbs):
         signaux_micros = []
         signal_reverbere = []
-        signal_propage = []
+        propagated_signal = []
         
         for (i, micro) in enumerate(self.positions_micros):
             signal_micro = np.zeros(len(max([signal for signal in self.all_signal], key=len)))
@@ -204,12 +200,12 @@ class Simulator:
                 print(positions_source[i][0])
                 print(distance)
                 print(self.all_signal[i])
-                signal_propage = self.simuler_propagation_attenuation(
+                propagated_signal = self.simuler_propagation_attenuation(
                     self.all_signal[i], distance)
-                print("signal_propage")
-                print(signal_propage)
+                print("propagated_signal")
+                print(propagated_signal)
                 signal_reverbere = self.appliquer_reverberation(
-                    signal_propage, activer_reverb)
+                    propagated_signal, reverb)
                 print("signal_reverbe")
                 print(signal_reverbere)
                 bruit_micro = self.generer_bruit(signal_reverbere, self.bruits[i])
@@ -248,12 +244,12 @@ def simuler():
     print(all_signal)
     print(sources)
     print(absorption)
-    ri_piece = 0
-    if activer_reverb:
-        ri_piece = ri(absorption, dimensions_piece, sources, positions_micros)
+    ri_room = 0
+    if reverb:
+        ri_room = ri(absorption, dimensions_piece, sources, positions_micros)
 
-    simulateur = Simulateur(positions_micros, position_sources, all_signal, ri_piece, vitesse_son, activer_reverb, bruits)
-    signaux_micros = simulateur.simuler_microphones(position_sources, activer_reverb)
+    simulateur = Simulateur(positions_micros, position_sources, all_signal, ri_room, vitesse_son, reverb, bruits)
+    signaux_micros = simulateur.simuler_microphones(position_sources, reverb)
     print("signals micros")
     print(signaux_micros)
     for i in range(len(signaux_micros)-1) :
