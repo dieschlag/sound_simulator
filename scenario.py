@@ -1,14 +1,14 @@
 from simulateur import *
 
-source(1, 5, 1, "Audio6")
-micro(1,1,1.5)
-micro(1.2,1,1.5)
-micro(9,1,1.5)
-micro(8.8,1,1.5)
+set_absorption_coefficients()
+add_source(1, 10, 1.5, "sources/Audio6.wav")
+add_microphone(1,1,1.5,40)
+add_microphone(1.2,1,1.5,40)
+add_microphone(9,1,1.5,40)
+add_microphone(8.8,1,1.5,40)
 
-piece(10, 20, 4)
-absorption_coeff()
-vitesse_son(343)
+set_room_dimensions(10, 20, 4)
+set_sound_speed(343)
 
-simu()
+simulate()
 
