@@ -53,12 +53,14 @@ def adjust_signal_length(signals):
         
     max_length = len(max([signal for signal in signals], key=len))
     adjusted_signals = []
+    
     for signal in signals:
         if len(signal) < max_length:
             adjusted_signal = np.pad(signal, (0,longueur_max-len(signal)))
             adjusted_signals.append(adjusted_signal)
         else :
             adjusted_signals.append(signal)
+    
     return adjusted_signals
 
 
@@ -77,7 +79,7 @@ def source(x,y,z,audio):
         None
     """
         
-    position_sources.append([[x,y,z],audio])
+    positions_sources.append([[x,y,z],audio])
     
     return None
 
@@ -97,7 +99,7 @@ def micro(x,y,z,signal_to_noise):
     """
     
     positions_micros.append([x,y,z])
-    bruits.append(bruit)
+    snrs.append(signal_to_noise)
     
     return None
 
