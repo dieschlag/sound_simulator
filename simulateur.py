@@ -11,91 +11,147 @@ import glob
 from reverb import *
 
 positions_micros = []
-position_sources = []
-bruits = []
-vitesse_son = 343
+positions_sources = []
+snrs = []
+sound_speed = 343
 
-def vitesse_son(vitesse):
-    global vitesse_son
-    vitesse_son = vitesse
+def sound_speed(speed):
+    """Defines sound speed used during simulation.
+    
+    Args: 
+        speed (positive float): speed of sound waves in medium.
+        
+    Returns: 
+        None.
+    """
+    global soud_speed
+    sound_speed = speed
     return None
 
-def audio_to_signal(chemin):
-    """Convertit un fichier audio en un signal NumPy."""
-    signal, sr = librosa.load(chemin, sr=None)
-    print("signal")
-    print(signal)
+def audio_to_signal(path):
+    """Converts audio file file (identified by path) to signal.
+    
+    Args: 
+        path (string): audio file path.
+        
+    Returns: 
+        signal (np.ndarray): Floating point time series of audio.
+    """
+    
+    signal, sr = librosa.load(path, sr=None)
     return signal
 
 
-def ajuster_longueur_signaux(signaux):
-    """Ajuste la longueur de tous les signaux à la longueur_max."""
-    longueur_max = len(max([signal for signal in signaux], key=len))
-    signaux_ajustes = []
-    for signal in signaux:
-        if len(signal) < longueur_max:
-            signal_ajuste = np.pad(signal, (0,longueur_max-len(signal)))
-            signaux_ajustes.append(signal_ajuste)
+def adjust_signal_length(signals):
+    """Adjusts signal lengths to match maximum length.
+    
+    Args: 
+        signals (vec<signal>): vector contanining all signals
+        
+    Returns:
+        adjusted_sgnals ([np.ndarray]): Signals of same length"""
+        
+    max_length = len(max([signal for signal in signals], key=len))
+    adjusted_signals = []
+    for signal in signals:
+        if len(signal) < max_length:
+            adjusted_signal = np.pad(signal, (0,longueur_max-len(signal)))
+            adjusted_signals.append(adjusted_signal)
         else :
-            signaux_ajustes.append(signal)
-    return signaux_ajustes
+            adjusted_signals.append(signal)
+    return adjusted_signals
 
 
 
 
 def source(x,y,z,audio):
+    """Adds an audio source to the given coordinates.
+    
+    Args:
+        x (float): position of the source along the x axis
+        y (float): position of the source along th y axis
+        z (float): position of the source along the z axis
+        audio ([np.ndarray]): audio signals played by the sources 
+        
+    Returns:
+        None
+    """
+        
     position_sources.append([[x,y,z],audio])
+    
     return None
 
 
 
-def micro(x,y,z,bruit):
+def micro(x,y,z,signal_to_noise):
+    """Adds a microphone to the given coordinates.
+    
+    Args:
+        x (float): position of the source along the x axis
+        y (float): position of the source along th y axis
+        z (float): position of the source along the z axis
+        signal_to_noise (positive float): signal-to-noise ratio of the microphone 
+        
+    Returns:
+        None
+    """
+    
     positions_micros.append([x,y,z])
     bruits.append(bruit)
+    
     return None
 
-def creer_dossier_et_enregistrer_signaux(nom_dossier, signaux, taux_echantillonnage=44100):
-    """
-    Crée un dossier et enregistre une liste de signaux audio dans ce dossier.
+def create_folder_and_save_signals(folder_name, signals, sampling_rate=44100):
+    """ Creates a folder to store audio files of audio signals captured by microphones
 
-    :param nom_dossier: Nom du dossier à créer.
-    :param signaux: Liste des signaux audio à enregistrer (chaque signal est un tableau NumPy).
-    :param taux_echantillonnage: Taux d'échantillonnage des signaux audio (en Hz).
+    Args:
+        folder_name (string): name of the folder in which audio files will be save
+        signals: ([np.ndarray]audio signals captures by microphones
+    
+    Returns:
+        None
     """
-    # Créer le dossier si celui-ci n'existe pas et retire les fichiers dans le dossier si ce dernier existe déjà
-    if not os.path.exists(nom_dossier):
-        os.makedirs(nom_dossier)
+    
+    # Creates folder to store recorded audio files, creates it if it does not exist, otherwise destroys content of file
+    if not os.path.exists(folder_name):
+        os.makedirs(folder_name) # Creates folder 
     else:
-        # Supprimer tous les fichiers existants dans le dossier
-        fichiers_a_supprimer = glob.glob(os.path.join(nom_dossier, "*.wav"))
-        for fichier in fichiers_a_supprimer:
+        # Deletes content of folder
+        files_to_delete = glob.glob(os.path.join(folder_name, "*.wav"))
+        for fichier in files_to_delete:
             os.remove(fichier)
+    # Saves audio files as WAV files in mono mode
+    for i, signal in enumerate(signals):
+        nom_fichier = os.path.join(folder_name, f"signal_micro_{i+1}.wav")
+        sf.write(nom_fichier, signal, sampling_rate)
 
-    # Enregistrer chaque signal dans le dossier sous forme de fichier WAV
-    for i, signal in enumerate(signaux):
-        nom_fichier = os.path.join(nom_dossier, f"signal_micro_{i+1}.wav")
-        sf.write(nom_fichier, signal, taux_echantillonnage)
-        print(f"Signal {i+1} enregistré sous : {nom_fichier}")
+    # Saves files in stereo mode, for each consecutive pair of microphones
+    for i in range(len(signals) - 1):
+        nom_fichier = os.path.join(folder_name, f"signal_successif_{i+1}_{i+2}.wav")
+        signal_combine = np.zeros((max(len(signals[i]), len(signals[i+1])), 2))
+        signal_combine[:len(signals[i]), 0] = signals[i]
+        signal_combine[:len(signals[i+1]), 1] = signals[i+1]
+        sf.write(nom_fichier, signal_combine, sampling_rate)
 
-    for i in range(len(signaux) - 1):
-        nom_fichier = os.path.join(nom_dossier, f"signal_successif_{i+1}_{i+2}.wav")
-        # Créer un tableau vide pour le signal combiné
-        signal_combine = np.zeros((max(len(signaux[i]), len(signaux[i+1])), 2))
-        # Assigner le son du microphone i à l'oreille gauche
-        signal_combine[:len(signaux[i]), 0] = signaux[i]
-        # Assigner le son du microphone i+1 à l'oreille droite
-        signal_combine[:len(signaux[i+1]), 1] = signaux[i+1]
-        # Enregistrer le signal combiné dans un fichier WAV
-        sf.write(nom_fichier, signal_combine, taux_echantillonnage)
-        print(f"Signaux {i+1} et {i+2} superposés et enregistrés sous : {nom_fichier}")
 
-class Simulateur:
+class Simulator:
+    """ Simualtor class storing all elements linked to an ongoing simulation"""
+    
     def __init__(self, positions_micros, position_sources, all_signal, ri_piece, vitesse_son, activer_reverb, bruits, fs=44100):
+        """ Initializes the Simulator class
+
+        Args:
+            position_micros ([micros]): list of micros with coordinates 
+            signals: ([np.ndarray]audio signals captures by microphones
+        
+        Returns:
+            None
+        """
         self.positions_micros = positions_micros
-        self.position_sources = position_sources
+        self.positions_sources = positions_sources
         self.all_signal = all_signal
-        self.ri_piece = ri_piece
-        self.vitesse_son = vitesse_son
+        self.ri_room = ri_room
+        self.sound_speed = sound_speed
         self.activer_reverb = activer_reverb
         self.bruits = bruits
         self.fs = fs
@@ -176,14 +232,14 @@ def simuler():
     # "Entrez le chemin du dossier contenant les fichiers audio : ")
 
     # fichiers_audio = lister_fichiers(chemin_du_dossier)
-    signaux = [audio_to_signal(position_sources[i][1])
+    signals = [audio_to_signal(position_sources[i][1])
             for i in range(len(position_sources))]
 
-    # Trouver la longueur maximale parmi tous les signaux
+    # Trouver la longueur maximale parmi tous les signals
     
 
-    # # Ajuster la longueur de tous les signaux à la longueur_max
-    signaux_ajustes = ajuster_longueur_signaux(signaux)
+    # # Ajuster la longueur de tous les signals à la longueur_max
+    signaux_ajustes = ajuster_longueur_signaux(signals)
 
     all_signal = signaux_ajustes
     sources= [item[0] for item in position_sources]
@@ -196,7 +252,7 @@ def simuler():
 
     simulateur = Simulateur(positions_micros, position_sources, all_signal, ri_piece, vitesse_son, activer_reverb, bruits)
     signaux_micros = simulateur.simuler_microphones(position_sources, activer_reverb)
-    print("signaux micros")
+    print("signals micros")
     print(signaux_micros)
     for i in range(len(signaux_micros)-1) :
         print(signaux_micros[i]-signaux_micros[i+1])
