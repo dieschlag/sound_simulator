@@ -5,78 +5,55 @@ import librosa
 import soundfile as sf
 import simpleaudio as sa
 
+# Room dimensions (width, length, height) in meters
 
-# Dimensions de la pièce (largeur, longueur, hauteur) en mètres
-activer_reverb = False
-dimensions_piece = []
+room_dimensions = []
 
-def piece(largeur=5.0, longueur=10.0, hauteur=2):
-    param =  [largeur, longueur, hauteur]
-    for item in param:
-        dimensions_piece.append(item)
+def set_room_dimensions(width=5.0, length=10.0, height=2):
+    """Sets the dimensions of the room."""
+    params = [width, length, height]
+    for item in params:
+        room_dimensions.append(item)
     return None
-    
 
-
-# Coefficients d'absorption pour chaque surface de la pièce
-
+# Absorption coefficients for each surface of the room
 absorption = {}
 
-def absorption_coeff(east=0.2, west=0.2, north=0.2, south=0.2, ceiling=0.6, floor=0.3):
-    global absorption
-    absorption.update({
-        'east': east,
-        'west': west,
-        'north': north,
-        'south': south,
-        'ceiling': ceiling,
-        'floor': floor
-    })
-    print(absorption)
-    global activer_reverb
-    activer_reverb = True
-    return None
-    
-     
 
-def ri(absorption, dimensions_piece, source_positions, microphone_positions) :
 
-    # Création d'un signal audio exemple (comme un signal impulsionnel)
-    duree_signal = 1  # en secondes
-    fs = 44100  # fréquence d'échantillonnage
-    t = np.linspace(0, duree_signal, int(fs * duree_signal), endpoint=False)
+def compute_room_impulse_response(absorption, room_dimensions, source_positions, microphone_positions):
+    """Computes the room impulse response using pyroomacoustics.
+
+    Args:
+        absorption (dict): Dictionary of absorption coefficients for each surface.
+        room_dimensions (list): List containing the width, length, and height of the room.
+        source_positions (list): List of coordinates for each audio source.
+        microphone_positions (list): List of coordinates for each microphone.
+
+    Returns:
+        np.ndarray: reverberated signal received at the microphone.
+    """
+    # Creating a sample audio signal (as an impulse signal)
+    signal_duration = 1  # in seconds
+    fs = 44100  # sampling frequency
+    t = np.linspace(0, signal_duration, int(fs * signal_duration), endpoint=False)
     signal = np.zeros_like(t)
-    signal[0] = 1  # Création d'une impulsion au début du signal
+    signal[0] = 1  # Creates an impulse at the start of the signal
 
-    # Création de la pièce
-    piece = pra.ShoeBox(dimensions_piece, absorption=absorption,
-                        max_order=10, fs=fs)
+    # Create the room
+    room = pra.ShoeBox(room_dimensions, absorption=absorption, max_order=10, fs=fs)
 
-    # Ajout de la source à la pièce avec le signal défini
-    # source_position = [2, 3.5, 1.2]  # Position de la source (x, y, z) en mètres
-    # # Assurez-vous d'ajouter le signal ici
-    # piece.add_source(source_position, signal=signal)
-
+    # Add sources to the room with the defined signal
     for position in source_positions:
-        piece.add_source(position, signal=signal)
+        room.add_source(position, signal=signal)
 
-
-    # Position du microphone
-
+    # Add microphones at specified positions
     for position in microphone_positions:
-        position_array = np.array([position]).T  # Transposer pour obtenir une liste 2D (ou utiliser np.array(position).reshape(-1, len(position)))
-        piece.add_microphone_array(pra.MicrophoneArray(position_array, fs=44100))
-    # micro = np.array([[2.5, 1, 1.5]]).T  # Coordonnées (x, y, z) en mètres
-    # piece.add_microphone_array(pra.MicrophoneArray(micro, fs=fs))
+        position_array = np.array([position]).T  # Transpose to get a 2D list (or use np.array(position).reshape(-1, len(position)))
+        room.add_microphone_array(pra.MicrophoneArray(position_array, fs=44100))
 
     # Simulation
-    piece.simulate()
+    room.simulate()
 
-    # Récupération du signal réverbéré au microphone
-    return piece.mic_array.signals[0, :]
-
-    # sf.write("test_reverb1.wav", ri, 44100)
-
-    # wave_obj = sa.WaveObject.from_wave_file("test_reverb1.wav")
-    # play_obj = wave_obj.play()
-    # play_obj.wait_done()  # pour s'écouter le résultat
+    # Retrieve the reverberated signal at the microphone
+    return room.mic_array.signals[0, :]
