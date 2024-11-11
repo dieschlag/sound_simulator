@@ -149,7 +149,7 @@ def create_folder_and_save_signals(folder_name, signals, sampling_rate=44100):
 
     # Saves files in stereo mode, for each consecutive pair of microphones
     for i in range(len(signals) - 1):
-        file_name = os.path.join(folder_name, f"signal_pair_{i+1}_{i+2}.wav")
+        file_name = os.path.join(folder_name, f"signal_pair_{i}_{i+1}.wav")
         combined_signal = np.zeros((max(len(signals[i]), len(signals[i+1])), 2))
         combined_signal[:len(signals[i]), 0] = signals[i]
         combined_signal[:len(signals[i+1]), 1] = signals[i+1]
@@ -191,8 +191,7 @@ class Simulator:
             # Applying reverb by convolving with a Fourier series
             return scipy.signal.fftconvolve(signal, self.room_ir, mode='full')[:len(signal)]
         else:
-            print(reverb)
-            print("No reverberation applied.")
+            
             return signal
 
     def generate_noise(self, signal, noise_level):
@@ -205,25 +204,29 @@ class Simulator:
     def simulate_microphones(self, source_positions, reverb):
         mic_signals = []
         
-        for mic in self.mic_positions:
+        for mic, snr in zip(self.mic_positions, self.snrs):
+            
+            print(f"Microphone at: (x: {mic[0]}, y: {mic[1]}, z: {mic[2]}) with nsr: {snr}")
+            
             mic_signal = np.zeros(len(max([signal for signal in self.all_signals], key=len)))
             for i in range(len(source_positions)):
                 # Calculate distance from source position to microphone
                 distance = np.linalg.norm(np.array(source_positions[i][0]) - np.array(mic))
                 propagated_signal = self.simulate_propagation_attenuation(self.all_signals[i], distance)
                 reverberated_signal = self.apply_reverberation(propagated_signal, reverb)
-                mic_noise = self.generate_noise(reverberated_signal, self.snrs[i])
+                mic_noise = self.generate_noise(reverberated_signal, snr)
                 mic_signal += reverberated_signal + mic_noise  # Superposition of signals
+            
             mic_signals.append(mic_signal)
+        
         return mic_signals
 
 
 def simulate():
-    print("simulate")
+    print("Room dimensions are:")
     print(room_dimensions)
-    print(absorption)
-    print(sound_speed)  
-
+    print
+    
     # Example signal loading and processing
     signals = [audio_to_signal(source_positions[i][1]) for i in range(len(source_positions))]
     adjusted_signals = adjust_signal_length(signals)
@@ -232,7 +235,17 @@ def simulate():
     sources = [item[0] for item in source_positions]
     room_ir = 0
     if reverb:
+        print("\nReverb is applied with coeffs:")
+        print(absorption)
+        print("") # To have a line return
         room_ir = compute_room_impulse_response(absorption, room_dimensions, sources, mic_positions)
+    else:
+        print(reverb)
+        print("No reverberation applied.")
+        
+    for source in sources:
+        print(f"Source at (x: {source[0]}, y: {source[1]}, z: {source[2]})")
+    print("") # To have a line return between source and microphones display
 
     simulator = Simulator(mic_positions, source_positions, all_signals, room_ir, sound_speed, reverb, snrs)
     mic_signals = simulator.simulate_microphones(source_positions, reverb)
