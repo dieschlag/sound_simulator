@@ -1,7 +1,5 @@
 import pyroomacoustics as pra
 import numpy as np
-import scipy.signal
-import librosa
 import soundfile as sf
 import simpleaudio as sa
 
@@ -49,7 +47,7 @@ def compute_room_impulse_response(absorption, room_dimensions, source_positions,
 
     # Add microphones at specified positions
     for position in microphone_positions:
-        position_array = np.array([position]).T  # Transpose to get a 2D list (or use np.array(position).reshape(-1, len(position)))
+        position_array = np.array([position]).T
         room.add_microphone_array(pra.MicrophoneArray(position_array, fs=44100))
 
     # Simulation
